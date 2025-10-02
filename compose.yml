@@ -1,0 +1,28 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://db_user:3l3v4t0r!53cr3t@localhost:5432/elevators
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./uv.lock
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: 3l3v4t0r!53cr3t
+      POSTGRES_DB: elevators
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
