@@ -1,44 +1,35 @@
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI
-from sqlalchemy.ext.asyncio import (
-    AsyncAttrs,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.orm import DeclarativeBase
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.settings import settings
+from app.env import env
+
+__all__ = ["engine", "db_session", "DbSession"]
 
 
-class Base(AsyncAttrs, DeclarativeBase):
-    pass
+engine = create_async_engine(str(env.database_uri), echo=env.debug and "debug")
 
-
-engine = create_async_engine(
-    str(settings.database_uri),
-    echo=True,
-)
-
-sessionmaker = async_sessionmaker(engine)
+create_session = async_sessionmaker(engine)
 
 
 async def create_db_metadata(*, drop=False):
+    from app.models import DbModel
+
     if drop:
         async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(DbModel.metadata.drop_all)
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(DbModel.metadata.create_all)
 
 
 @asynccontextmanager
-async def open_session():
-    async with sessionmaker() as session:
+async def db_session():
+    async with create_session() as session:
         async with session.begin():
             yield session
 
 
-DbSessionDep = Annotated[AsyncSession, Depends(open_session)]
+DbSession = Annotated[AsyncSession, Depends(db_session)]
