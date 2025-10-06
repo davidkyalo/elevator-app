@@ -7,8 +7,13 @@ requires-python = ">=3.12"
 dependencies = [
     "asyncpg>=0.30.0",
     "fastapi[standard]>=0.118.0",
+    "psycopg>=3.2.10",
     "pydantic-settings>=2.11.0",
-    "sqlalchemy>=2.0.43",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov[toml]>=7.0.0",
+    "rich>=14.1.0",
+    "sqlalchemy[asyncio]>=2.0.43",
 ]
 
 [project.scripts]
@@ -16,3 +21,25 @@ worker = "app.cli:worker"
 
 [tool.uv]
 package = true
+
+
+[tool.pytest.ini_options]
+addopts = "--showlocals --cov=mobilex --cov-report html --cov-config pyproject.toml"
+asyncio_mode = "auto"
+xfail_strict = true
+log_level = "DEBUG"
+python_files = "tests.py test.py test_*.py"
+python_classes = "test_* Test_*"
+python_functions = "test_* test"
+
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "^\\s*pass\\s*$",
+    "^\\s*\\.\\.\\.\\s*$",
+    "raise NotImplementedError",
+    "if\\s+([a-zA-Z0-9_]+\\.)?TYPE_CHECKING\\s*:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

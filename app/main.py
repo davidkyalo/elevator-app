@@ -9,13 +9,11 @@ from app import models as m
 async def _app_lifespan(app: FastAPI):
     from app.db import create_db_metadata
 
-    await create_db_metadata(drop=True)
+    await create_db_metadata(drop=False)
     yield
 
 
 app = FastAPI(lifespan=_app_lifespan)
 
 
-@app.get("/")
-def say_hello():
-    return {"Hello": "World"}
+from . import api as _
